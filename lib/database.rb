@@ -15,7 +15,7 @@ class Database
     foreign_keys = params[:foreign_keys]
 
     statement = "CREATE TABLE IF NOT EXISTS #{table_name} ( #{columns.join(',')}"
-    statement += ", PRIMARY KEY #{primary_key}" unless primary_key.nil?
+    statement += ", PRIMARY KEY (#{primary_key})" unless primary_key.nil?
     foreign_keys&.each do |key_name, hash|
       foreign_key_statement = []
       foreign_key_statement << "FOREIGN KEY #{key_name}(#{hash.fetch(:foreign_key_column)}) REFERENCES #{hash
@@ -46,13 +46,11 @@ class Database
     VALUES(#{values})
     END_SQL
 
-    begin
-      @client.query statement
-    rescue Mysql2::Error => e
-      binding.pry
-    end
+    @client.query statement
   end
 
+  # @param [Hash] params
+  # @return [Boolean] returns either false or true depending on whether the row exists in the specified table.
   def exists?(**params)
     table_name = params.fetch(:table_name)
     where_statement = params.fetch(:where)
@@ -85,6 +83,8 @@ class Database
     @client.query(statement, symbolize_keys: true)
   end
 
+  # @param [String] string - String to escape single quotes from
+  # @return [String] single quotes escaped string
   def escape_single_quotes(string)
     string.gsub("'", "\\\\'")
   end
