@@ -35,7 +35,9 @@ class BuildingPermitsSurveyScraper
   end
 
   def scrape_previous_month
-    date = Date.now.prev_month
+    prev_month_date = Date.today.prev_month
+
+    scrape_between_dates(prev_month_date, prev_month_date)
   end
 
   # @param [Hash] params
@@ -95,6 +97,10 @@ class BuildingPermitsSurveyScraper
     response = @agent.get url
     parsed_response_body = Nokogiri::HTML(response.body)
     pre_tagged_text = parsed_response_body.xpath('//p').text
+    unless file_available?(pre_tagged_text)
+      puts "No file available for #{url} yet."
+      return
+    end
 
     lines = []
     pre_tagged_text.split("\n").each { |line| lines << line }
